@@ -3,8 +3,11 @@ import os
 from time import sleep
 from typing import List, Optional
 
+from rich.text import Text
+
 from dvc.env import DVC_CHECKPOINT, DVC_ROOT
 from dvc.repo import Repo
+from dvc.repo.experiments.show import tabulate
 from dvc.stage.monitor import CheckpointTask
 
 
@@ -69,3 +72,48 @@ def exp_save(
         return repo.experiments.save(
             name=name, force=force, include_untracked=include_untracked
         )
+
+
+def _postprocess(exp_rows):
+    for exp_row in exp_rows:
+        for k, v in exp_row.items():
+            if isinstance(v, Text):
+                v_str = str(v)
+                try:
+                    exp_row[k] = float(v_str)
+                except ValueError:
+                    exp_row[k] = v_str
+    return exp_rows
+
+
+def exp_show(  # noqa: PLR0913
+    repo: Optional[str] = None,
+    all_branches: bool = False,
+    all_tags: bool = False,
+    all_commits: bool = False,
+    hide_queued: bool = False,
+    hide_failed: bool = False,
+    rev: Optional[str] = None,
+    num: int = 1,
+    sha: bool = False,
+    param_deps: bool = False,
+    fetch_running: bool = False,
+    force: bool = False,
+):
+    with Repo.open(repo) as _repo:
+        experiments = _repo.experiments.show(
+            all_branches=all_branches,
+            all_tags=all_tags,
+            all_commits=all_commits,
+            hide_queued=hide_queued,
+            hide_failed=hide_failed,
+            revs=rev,
+            num=num,
+            sha_only=sha,
+            param_deps=param_deps,
+            fetch_running=fetch_running,
+            force=force,
+        )
+        td, _ = tabulate(experiments, fill_value=None)
+
+        return _postprocess(td.as_dict())

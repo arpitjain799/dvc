@@ -62,7 +62,7 @@ def show(
 
 def tabulate(
     baseline_states: Iterable["ExpState"],
-    fill_value: str = "-",
+    fill_value: Optional[str] = "-",
     error_value: str = "!",
     **kwargs,
 ) -> Tuple["TabularData", Dict[str, Iterable[str]]]:
@@ -124,7 +124,7 @@ def _build_rows(
     baseline_states: Iterable["ExpState"],
     *,
     all_headers: Iterable[str],
-    fill_value: str,
+    fill_value: Optional[str],
     sort_by: Optional[str] = None,
     sort_order: Optional[Literal["asc", "desc"]] = None,
     **kwargs,
